@@ -5,16 +5,18 @@ import { Container } from '@/components/shared/container';
 import { useDropzone } from 'react-dropzone';
 import * as mammoth from 'mammoth';
 
+// @ts-expect-error библиотека не имеет типов TS поэтому на время поставлю игнорирование
+import { toHtml } from 'docshift';
+
 export default function HomePage() {
     const [converted, setConverted] = useState<string>();
 
     const { acceptedFiles, getRootProps, getInputProps } = useDropzone({
         onDrop: async (files) => {
             const file = files[0];
-            const arrBuffer = await file.arrayBuffer();
-            const result = await mammoth.convertToHtml({ arrayBuffer: arrBuffer });
 
-            setConverted(String(result.value));
+            const html = await toHtml(file);
+            setConverted(html);
         },
     });
 
@@ -26,7 +28,7 @@ export default function HomePage() {
                 <input {...getInputProps()} />
                 <p>Перетащите сюда файл (.docx) или Нажмите для того чтобы передать файл</p>
             </div>
-            <div className="w-full rounded-sm bg-gray-100 p-3">
+            <div className="w-full h-fit rounded-sm bg-gray-100 p-3">
                 <h4 className="mb-5">Отформатированный текст:</h4>
                 <ul>{converted}</ul>
             </div>
