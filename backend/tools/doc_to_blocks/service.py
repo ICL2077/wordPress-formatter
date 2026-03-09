@@ -1,7 +1,7 @@
 from docx import Document
 def convert_doc_to_wp_tags(file):
     """
-    Данная функция просто возвращает количество символов в документе докх
+    Данная функция просто возвращает количество символов в документе docx
     """
     try:
         doc = Document(file)
