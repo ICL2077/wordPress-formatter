@@ -1,0 +1,26 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+
+# PyCharm / IDE project settings
+.idea/
+*.iml
+*.iws
+
+# Environment variables (секреты и ключи)
+.env
+.flaskenv
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Databases (если используете SQLite локально)
+*.sqlite3
