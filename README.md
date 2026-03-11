@@ -11,11 +11,14 @@
 
 Откройте терминал в корневой папке проекта и выполните команду:
 
-**Для Windows:**
+**Для Linux:**
 
 ```bash
-python -m venv venv
-venv\Scripts\activate
+# Создание виртуального окружения
+python3 -m venv venv
+
+# Активация окружения
+source venv/bin/activate
 
 ```
 
@@ -26,23 +29,29 @@ venv\Scripts\activate
 Убедитесь, что виртуальное окружение активировано (в терминале должно появиться `(venv)`), и установите библиотеки из файла `requirements.txt`:
 
 ```bash
+pip install --upgrade pip
 pip install -r requirements.txt
-
 ```
 
 ### Шаг 3: Запуск сервера
 
-Запустите главный файл приложения:
+Вариант А: Обычный запуск (Development)
 
 ```bash
-python app.py
+python3 app.py
 
 ```
 
-Если всё прошло успешно, сервер запустится на порту `5001`. Доступные локальные адреса:
+Вариант Б: Запуск через Gunicorn (Production-ready)
 
-* API: `http://127.0.0.1:5001`
-* Документация Swagger: `http://127.0.0.1:5001/apidocs/`
+```bash
+gunicorn --bind 0.0.0.0:5000 --workers 4 --log-level info "backend.app:create_app()"
+```
+
+Если всё прошло успешно, сервер запустится на порту `5000`. Доступные локальные адреса:
+
+* API: `http://127.0.0.1:5000`
+* Документация Swagger: `http://127.0.0.1:5000/apidocs/`
 
 ---
 
