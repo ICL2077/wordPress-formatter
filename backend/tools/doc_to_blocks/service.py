@@ -1,8 +1,10 @@
 from docx import Document
+
+import os
 def convert_doc_to_wp_tags(file):
     from docx import Document
 
-    document = Document('input.docx')
+    document = Document(file)
     table_text = []  # список с таблицей
 
     for table in document.tables:  # заполнение таблицы
@@ -13,11 +15,14 @@ def convert_doc_to_wp_tags(file):
     atistation = table_text[-4:-3]
     table_text = table_text[2:-5]  # убираю лишнее
 
+    current_dir = os.path.dirname(__file__)
+    sample_path = os.path.join(current_dir, 'sample.html')
+
     with open('output.txt', 'wb') as output:
         output.write(bytes('', 'utf-8'))
 
     with open('output.txt', 'ab') as output:
-        sample = open('sample.html', 'rb')
+        sample = open(sample_path, 'rb')
         date_sample_start = sample.read(638)  # переменая с тегами перед текстом с датой
         date_sample_end = sample.read(66)  # переменая с тегами после текста с датой
         main_text_tegs = sample.read(235)
@@ -47,4 +52,8 @@ def convert_doc_to_wp_tags(file):
                     output.write(bytes("<br><strong>", "utf-8"))
 
         sample.close()
-        return output
+
+        with open('output.txt', 'r', encoding='utf-8') as f:
+            result_text = f.read()
+
+        return result_text

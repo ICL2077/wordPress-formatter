@@ -19,7 +19,7 @@ RUN chown -R appuser:appgroup /app
 USER appuser
 
 ENV PYTHONPATH="/app:/app/backend"
-EXPOSE 5000
+EXPOSE 5001
 
 # 4. Запускаем Gunicorn с использованием /dev/shm для heartbeats
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "--worker-tmp-dir", "/dev/shm", "--log-level", "info", "backend.app:create_app()"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5001", "--workers", "4", "--worker-tmp-dir", "/dev/shm", "--log-level", "info", "backend.app:create_app()"]
