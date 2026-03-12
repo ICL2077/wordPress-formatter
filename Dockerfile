@@ -18,4 +18,12 @@ USER appuser
 ENV PYTHONPATH="/app:/app/backend"
 EXPOSE 5001
 
-CMD ["gunicorn", "--bind", "0.0.0.0:5001", "--workers", "4", "--worker-tmp-dir", "/dev/shm", "backend.app:create_app()"]
+CMD ["gunicorn", \
+  "--bind", "0.0.0.0:5001", \
+  "--workers", "2", \
+  "--threads", "4", \
+  "--timeout", "120", \
+  "--graceful-timeout", "30", \
+  "--access-logfile", "-", \
+  "--error-logfile", "-", \
+  "backend.app:create_app()"]
