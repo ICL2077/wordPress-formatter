@@ -18,10 +18,13 @@ def convert_doc_to_wp_tags(file):
     current_dir = os.path.dirname(__file__)
     sample_path = os.path.join(current_dir, 'sample.html')
 
-    with open('output.txt', 'wb') as output:
+    output_path = os.path.join(current_dir, 'output.txt')
+
+
+    with open(output_path, 'wb') as output:
         output.write(bytes('', 'utf-8'))
 
-    with open('output.txt', 'ab') as output:
+    with open(output_path, 'ab') as output:
         sample = open(sample_path, 'rb')
         date_sample_start = sample.read(638)  # переменая с тегами перед текстом с датой
         date_sample_end = sample.read(66)  # переменая с тегами после текста с датой
@@ -53,7 +56,9 @@ def convert_doc_to_wp_tags(file):
 
         sample.close()
 
-        with open('output.txt', 'r', encoding='utf-8') as f:
+
+
+        with open(output_path, 'r', encoding='utf-8') as f:
             result_text = f.read()
 
         return result_text
