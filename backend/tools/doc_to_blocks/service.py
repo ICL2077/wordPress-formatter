@@ -1,64 +1,60 @@
+from io import BytesIO
+from pathlib import Path
 from docx import Document
 
-import os
+
 def convert_doc_to_wp_tags(file):
-    from docx import Document
+    # Переводим входной файл в память
+    uploaded_bytes = file.read()
+    document = Document(BytesIO(uploaded_bytes))
 
-    document = Document(file)
-    table_text = []  # список с таблицей
+    table_text = []
 
-    for table in document.tables:  # заполнение таблицы
+    for table in document.tables:
         for row in table.rows:
             text = [cell.text for cell in row.cells]
             table_text.append(text)
 
-    atistation = table_text[-4:-3]
     table_text = table_text[2:-5]  # убираю лишнее
 
-    current_dir = os.path.dirname(__file__)
-    sample_path = os.path.join(current_dir, 'sample.html')
+    # Читаем sample.html как шаблон
+    current_dir = Path(__file__).resolve().parent
+    sample_path = current_dir / "sample.html"
+    sample_bytes = sample_path.read_bytes()
 
-    output_path = os.path.join(current_dir, 'output.txt')
+    # Те же самые куски, что и в исходной функции
+    date_sample_start = sample_bytes[:638]
+    date_sample_end = sample_bytes[638:704]
+    main_text_tegs = sample_bytes[704:939]
 
+    output = BytesIO()
 
-    with open(output_path, 'wb') as output:
-        output.write(bytes('', 'utf-8'))
+    for row_index in range(len(table_text)):
+        time = table_text[row_index][0]
+        lecturer = table_text[row_index][3]
+        lesson = table_text[row_index][1]
 
-    with open(output_path, 'ab') as output:
-        sample = open(sample_path, 'rb')
-        date_sample_start = sample.read(638)  # переменая с тегами перед текстом с датой
-        date_sample_end = sample.read(66)  # переменая с тегами после текста с датой
-        main_text_tegs = sample.read(235)
+        if lesson[:6] == 'Модуль':
+            continue
 
-        for row_index in range(len(table_text)):
-            time = table_text[row_index][0]
-            lecturer = table_text[row_index][3]
-            lesson = table_text[row_index][1]
+        elif time == lesson:
+            date = table_text[row_index][0]
+            output.write(date_sample_start + date.encode("utf-8") + date_sample_end)
+            output.write(main_text_tegs)
 
-            if lesson[:6] == 'Модуль':
-                continue
-            elif time == lesson:
-                date = table_text[row_index][0]
-                print(date[:5])
-                output.write(date_sample_start + bytes(date, 'utf-8') + date_sample_end)
-                output.write(main_text_tegs)
+        else:
+            output.write((time.replace('.', ':') + ', ' + lecturer.split(',')[0]).encode("utf-8"))
+            output.write(("<br></strong>" + lesson).encode("utf-8"))
 
+            if (
+                row_index == len(table_text) - 1
+                or (
+                    table_text[row_index + 1][0] == table_text[row_index + 1][1]
+                    and table_text[row_index + 1][0][:6] != 'Модуль'
+                )
+            ):
+                output.write(b"</p>\n<!-- /wp:paragraph -->\n\n")
             else:
-                output.write(bytes(time.replace('.', ':') + ', ' + lecturer.split(',')[0], "utf-8"))
-                output.write(bytes("<br></strong>" + lesson, "utf-8"))
+                output.write(b"<br><strong>")
 
-                if row_index == len(table_text) - 1 or table_text[row_index + 1][0] == table_text[row_index + 1][1] and \
-                        table_text[row_index + 1][0][:6] != 'Модуль':
-                    output.write(bytes("</p>\n<!-- /wp:paragraph -->\n\n", "utf-8"))
-
-                else:
-                    output.write(bytes("<br><strong>", "utf-8"))
-
-        sample.close()
-
-
-
-        with open(output_path, 'r', encoding='utf-8') as f:
-            result_text = f.read()
-
-        return result_text
+    return output.getvalue().decode("utf-8")
