@@ -14,8 +14,7 @@ def convert_doc_to_wp_tags(file):
     table_text = table_text[2:-5]  # убираю лишнее
 
     with open('output.txt', 'wb') as output:
-        with open('sample_without_raspisanie_zanatiy.html', 'rb') as sample:
-            output.write(sample.read())
+        output.write(bytes('', 'utf-8'))
 
     with open('output.txt', 'ab') as output:
         sample = open('sample.html', 'rb')
