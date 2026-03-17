@@ -1,97 +1,125 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Container } from '@/components/shared/container';
-import { useDropzone } from 'react-dropzone';
-import * as mammoth from 'mammoth';
+import { useState } from "react";
+import { useDropzone } from "react-dropzone";
+import { Container } from "@/components/shared/container";
 
 export default function HomePage() {
-    const [htmlString, setHtmlString] = useState<string>();
+  const [htmlString, setHtmlString] = useState<string>("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
-    const { getRootProps, getInputProps } = useDropzone({
-        onDrop: async (files) => {
-            const file = files[0];
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    multiple: false,
+    accept: {
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+        [".docx"],
+    },
+    onDrop: async (acceptedFiles) => {
+      const file = acceptedFiles[0];
 
-            const arrBuff = await file.arrayBuffer();
+      if (!file) {
+        setError("Файл не выбран");
+        return;
+      }
 
-            const res = await mammoth.convertToHtml({ arrayBuffer: arrBuff });
+      setLoading(true);
+      setError(null);
+      setCopied(false);
 
-            setHtmlString(res.value);
-        },
-    });
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
 
-    const parseTables = (arr: string[]) => {
-        if (typeof window === 'undefined') return [];
+        const response = await fetch(
+          "http://localhost:5001/api/tools/doc-to-blocks/",
+          {
+            method: "POST",
+            body: formData,
+          },
+        );
 
-        const parser = new DOMParser();
-        const arrOfTags: { row: string; blocks: string[] }[] = [];
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.error || "Ошибка API");
+        }
 
-        arr.forEach((str) => {
-            const parseString = parser.parseFromString(str, 'text/html');
-            const tableRows = parseString.querySelectorAll('table tr');
+        const data = await response.json();
 
-            tableRows.forEach((row) => {
-                const tds = row.querySelectorAll('td');
-                const blocks: string[] = [];
+        if (!data.html) {
+          throw new Error("API не вернул html");
+        }
 
-                tds.forEach((td) => {
-                    blocks.push(td.innerHTML);
-                });
+        setHtmlString(data.html);
+      } catch (err: any) {
+        console.error(err);
+        setError(err.message || "Ошибка загрузки");
+      } finally {
+        setLoading(false);
+      }
+    },
+  });
 
-                if (blocks.length > 0) arrOfTags.push({ row: row.innerHTML, blocks });
-            });
-        });
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(htmlString);
+      setCopied(true);
 
-        return arrOfTags;
-    };
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Ошибка копирования:", err);
+    }
+  };
 
-    const convertP = (htmlStr: string) => {
-        if (htmlStr.includes('<p>'))
-            return `<!-- wp:paragraph -->\n${htmlStr}\n<!-- /wp:paragraph -->`.split('\n');
+  return (
+    <Container className="flex h-[90vh] gap-5 flex-row py-5">
+      {/* DROPZONE */}
+      <div
+        {...getRootProps()}
+        className={`flex items-center justify-center p-10 border-2 border-dashed rounded cursor-pointer transition
+                ${isDragActive ? "border-blue-500 bg-blue-50" : "border-gray-400"}`}
+      >
+        <input {...getInputProps()} />
 
-        return htmlStr;
-    };
+        {loading ? (
+          <p>Загрузка...</p>
+        ) : isDragActive ? (
+          <p>Отпустите файл здесь...</p>
+        ) : (
+          <p>Перетащите .docx файл или кликните</p>
+        )}
+      </div>
 
-    const arrOfTables = htmlString?.split('</table>').map((str) => str + '</table>') ?? [];
+      {/* RESULT */}
+      <div className="w-full h-full flex flex-col rounded bg-gray-100 p-5">
+        <div className="flex justify-between items-center mb-3">
+          <h4 className="font-bold">HTML (для копирования):</h4>
 
-    const rows = parseTables(arrOfTables);
+          {htmlString && (
+            <button
+              onClick={handleCopy}
+              className="px-3 py-1 bg-black text-white rounded text-sm"
+            >
+              {copied ? "Скопировано!" : "Копировать"}
+            </button>
+          )}
+        </div>
 
-    return (
-        <Container className="flex h-[90vh] gap-3 flex-row py-5">
-            <div
-                className="flex items-center p-10 border border-dashed rounded-sm border-gray-400"
-                {...getRootProps()}>
-                <input {...getInputProps()} />
-                <p>Перетащите сюда файл (.docx) или Нажмите для того чтобы передать файл</p>
-            </div>
-            <div className="w-full h-fit rounded-sm bg-gray-100 p-3">
-                <h4 className="mb-5">Отформатированный текст:</h4>
-                <div className="flex flex-col gap-5">
-                    {rows.map((itm, index) => (
-                        <>
-                            <ul className="border-b border-black" key={index}>
-                                <h1>Строка: {index + 1}</h1>
-                                {itm.blocks.map((block, index) => {
-                                    const gutenString = convertP(block);
-                                    console.log(gutenString);
+        {error && <p className="text-red-500 mb-3">{error}</p>}
 
-                                    if (typeof gutenString === 'string') {
-                                        return <li key={index}>{gutenString}</li>;
-                                    } else {
-                                        return (
-                                            <li className="my-3" key={index}>
-                                                {gutenString.map((str, index) => (
-                                                    <p key={index}>{str}</p>
-                                                ))}
-                                            </li>
-                                        );
-                                    }
-                                })}
-                            </ul>
-                        </>
-                    ))}
-                </div>
-            </div>
-        </Container>
-    );
+        {!htmlString && !error && !loading && (
+          <p className="text-gray-500">Здесь появится HTML</p>
+        )}
+
+        {htmlString && (
+          <textarea
+            readOnly
+            value={htmlString}
+            className="w-full h-full p-3 font-mono text-sm bg-white border rounded resize-none"
+          />
+        )}
+      </div>
+    </Container>
+  );
 }
