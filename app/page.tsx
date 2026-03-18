@@ -2,23 +2,7 @@
 
 import { useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { Container } from "@/frontend/components/shared/container";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-if (!API_URL) {
-  throw new Error("NEXT_PUBLIC_API_URL не задан");
-}
-console.log("API:", API_URL);
-
-function getApiUrl() {
-  const url = process.env.NEXT_PUBLIC_API_URL;
-
-  if (!url) {
-    throw new Error("NEXT_PUBLIC_API_URL не задан");
-  }
-
-  return url;
-}
+import { Container } from "@/components/shared/container";
 
 export default function HomePage() {
   const [htmlString, setHtmlString] = useState<string>("");
@@ -49,7 +33,7 @@ export default function HomePage() {
         formData.append("file", file);
 
         const response = await fetch(
-          `${getApiUrl()}/api/tools/doc-to-blocks/`,
+          "http://localhost:5001/api/tools/doc-to-blocks/",
           {
             method: "POST",
             body: formData,
@@ -68,12 +52,9 @@ export default function HomePage() {
         }
 
         setHtmlString(data.html);
-      } catch (err: unknown) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError("Неизвестная ошибка");
-        }
+      } catch (err: any) {
+        console.error(err);
+        setError(err.message || "Ошибка загрузки");
       } finally {
         setLoading(false);
       }
