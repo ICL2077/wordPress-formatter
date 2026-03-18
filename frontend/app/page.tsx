@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { Container } from "@/frontend/components/shared/container";
+import { Container } from "@/components/shared/container";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 if (!API_URL) {

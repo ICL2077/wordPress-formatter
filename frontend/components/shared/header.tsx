@@ -1,5 +1,5 @@
 import React from "react";
-import { cn } from "@/frontend/lib/utils";
+import { cn } from "@/lib/utils";
 import { Container } from "./container";
 
 interface Props {
