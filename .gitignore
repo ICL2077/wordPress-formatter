@@ -1,26 +1,62 @@
-# Byte-compiled / optimized / DLL files
+# =========================
+# Python / Flask (Backend)
+# =========================
 __pycache__/
 *.py[cod]
 *$py.class
-
-# Virtual Environments
 .venv/
 venv/
 ENV/
 env/
+*.sqlite3
+.flaskenv
 
-# PyCharm / IDE project settings
+# =========================
+# Node.js / Next.js (Frontend)
+# =========================
+node_modules/
+.next/
+out/
+build/
+dist/
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+*.tsbuildinfo
+next-env.d.ts
+
+# =========================
+# Environment & Secrets
+# =========================
+.env
+.env.*
+!.env.example
+
+# =========================
+# IDE / Editor Settings
+# =========================
 .idea/
+.vscode/
 *.iml
 *.iws
 
-# Environment variables (секреты и ключи)
-.env
-.flaskenv
+# =========================
+# Logs & Testing
+# =========================
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+coverage/
 
-# OS generated files
+# =========================
+# OS & System
+# =========================
 .DS_Store
 Thumbs.db
-
-# Databases (если используете SQLite локально)
-*.sqlite3
+.vercel
