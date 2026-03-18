@@ -1,5 +1,46 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## 🚀 Запуск проекта
+
+```bash
+cd frontend
+npm install
+```
+
+Создать `.env.local`:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:5001
+```
+
+Запуск:
+
+```bash
+npm run dev
+```
+
+Открыть:
+
+```
+http://localhost:3000
+```
+
+---
+
+## 🐳 Запуск через Docker
+
+```bash
+docker build --build-arg NEXT_PUBLIC_API_URL=http://localhost:5001 -t wp-formatter .
+docker run -p 3000:3000 -e NEXT_PUBLIC_API_URL=http://localhost:5001 wp-formatter-frontend
+```
+
+---
+
+## ⚠️ Требования
+
+- Node.js 18+
+- Запущенный backend на `http://localhost:5001`
+
 ## Getting Started
 
 First, run the development server:
