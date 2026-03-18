@@ -15,7 +15,7 @@ RUN chown -R appuser:appgroup /app
 
 USER appuser
 
-ENV PYTHONPATH="/app:/app/backend"
+ENV PYTHONPATH="/app:/app/"
 EXPOSE 5001
 
 CMD ["gunicorn", \
@@ -26,4 +26,4 @@ CMD ["gunicorn", \
   "--graceful-timeout", "30", \
   "--access-logfile", "-", \
   "--error-logfile", "-", \
-  "backend.app:create_app()"]
+  "app:create_app()"]
