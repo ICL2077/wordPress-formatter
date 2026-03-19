@@ -1,144 +1,174 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useDropzone } from "react-dropzone";
-import { Container } from "@/components/shared/container";
+import { useState } from 'react';
+import { useDropzone } from 'react-dropzone';
+import { Container } from '@/components/shared/container';
+import OutsideClickHandler from 'react-outside-click-handler';
+import { cn } from '@/lib/utils';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 if (!API_URL) {
-  throw new Error("NEXT_PUBLIC_API_URL не задан");
+    throw new Error('NEXT_PUBLIC_API_URL не задан');
 }
-console.log("API:", API_URL);
+console.log('API:', API_URL);
 
 function getApiUrl() {
-  const url = process.env.NEXT_PUBLIC_API_URL;
+    const url = process.env.NEXT_PUBLIC_API_URL;
 
-  if (!url) {
-    throw new Error("NEXT_PUBLIC_API_URL не задан");
-  }
+    if (!url) {
+        throw new Error('NEXT_PUBLIC_API_URL не задан');
+    }
 
-  return url;
+    return url;
 }
 
 export default function HomePage() {
-  const [htmlString, setHtmlString] = useState<string>("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+    const [htmlString, setHtmlString] = useState<string>('');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [copied, setCopied] = useState(false);
+    const [isOpened, setIsOpened] = useState<boolean>(false);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    multiple: false,
-    accept: {
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-        [".docx"],
-    },
-    onDrop: async (acceptedFiles) => {
-      const file = acceptedFiles[0];
+    const { getRootProps, getInputProps, isDragActive } = useDropzone({
+        multiple: false,
+        accept: {
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+        },
+        onDrop: async (acceptedFiles) => {
+            const file = acceptedFiles[0];
 
-      if (!file) {
-        setError("Файл не выбран");
-        return;
-      }
+            if (!file) {
+                setError('Файл не выбран');
+                return;
+            }
 
-      setLoading(true);
-      setError(null);
-      setCopied(false);
+            setLoading(true);
+            setError(null);
+            setCopied(false);
 
-      try {
-        const formData = new FormData();
-        formData.append("file", file);
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
 
-        const response = await fetch(
-          `${getApiUrl()}/api/tools/doc-to-blocks/`,
-          {
-            method: "POST",
-            body: formData,
-          },
-        );
+                const response = await fetch(`${getApiUrl()}/api/tools/doc-to-blocks/`, {
+                    method: 'POST',
+                    body: formData,
+                });
 
-        if (!response.ok) {
-          const errData = await response.json().catch(() => ({}));
-          throw new Error(errData.error || "Ошибка API");
+                if (!response.ok) {
+                    const errData = await response.json().catch(() => ({}));
+                    throw new Error(errData.error || 'Ошибка API');
+                }
+
+                const data = await response.json();
+
+                if (!data.html) {
+                    throw new Error('API не вернул html');
+                }
+
+                setHtmlString(data.html);
+            } catch (err: unknown) {
+                if (err instanceof Error) {
+                    setError(err.message);
+                } else {
+                    setError('Неизвестная ошибка');
+                }
+            } finally {
+                setLoading(false);
+            }
+        },
+    });
+
+    const handleCopy = async () => {
+        try {
+            await navigator.clipboard.writeText(htmlString);
+            setCopied(true);
+
+            setTimeout(() => setCopied(false), 2000);
+        } catch (err) {
+            console.error('Ошибка копирования:', err);
         }
+    };
 
-        const data = await response.json();
+    return (
+        <Container className="flex h-[90vh] gap-5 flex-row py-5 overflow-hidden max-[1030px]:flex-col max-[1030px]:px-3">
+            {/* DROPZONE */}
+            <div
+                {...getRootProps()}
+                className={`flex items-center justify-center p-10 border-2 border-dashed rounded cursor-pointer transition
+                ${isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-400'}`}>
+                <input {...getInputProps()} />
 
-        if (!data.html) {
-          throw new Error("API не вернул html");
-        }
+                {loading ? (
+                    <p>Загрузка...</p>
+                ) : isDragActive ? (
+                    <p>Отпустите файл здесь...</p>
+                ) : (
+                    <p>Перетащите .docx файл или кликните</p>
+                )}
+            </div>
 
-        setHtmlString(data.html);
-      } catch (err: unknown) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError("Неизвестная ошибка");
-        }
-      } finally {
-        setLoading(false);
-      }
-    },
-  });
+            {/* RESULT */}
+            <div className="w-full h-full flex flex-col rounded bg-gray-100 p-5">
+                <div className="flex justify-between items-center mb-3">
+                    <h4 className="font-bold">
+                        {Boolean(htmlString)
+                            ? `Вот ваши спарсенные данные!`
+                            : `Тут будут ваши спарсенные данные!`}
+                    </h4>
 
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(htmlString);
-      setCopied(true);
+                    <div className="flex flex-row gap-3 items-center">
+                        <div className="relative flex items-center justify-center">
+                            <OutsideClickHandler onOutsideClick={() => setIsOpened(false)}>
+                                <button
+                                    onClick={() => setIsOpened(true)}
+                                    className="px-3 py-1 bg-black text-white rounded text-sm">
+                                    Шаблон
+                                </button>
+                            </OutsideClickHandler>
 
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error("Ошибка копирования:", err);
-    }
-  };
+                            <div
+                                className={cn(
+                                    'flex flex-col gap-3 absolute invisible transition-all duration-200 translate-y-3 opacity-0 top-8 h-fit w-75 border border-black bg-white z-30 rounded-md px-1 py-2 overflow-hidden',
+                                    isOpened && 'visible opacity-100 translate-y-0',
+                                )}>
+                                <p>
+                                    Вы можете скачать файл-шаблон для того чтобы увидеть как
+                                    примерно должен выглядеть входной файл для корректной работы
+                                </p>
+                                <a
+                                    href="/шаблон-файл.docx"
+                                    download={'../шаблон-файл.docx'}
+                                    className="text-center w-[50%] cursor-pointer px-3 py-1 bg-black text-white rounded text-sm">
+                                    Скачать шаблон
+                                </a>
+                            </div>
+                        </div>
 
-  return (
-    <Container className="flex h-[90vh] gap-5 flex-row py-5">
-      {/* DROPZONE */}
-      <div
-        {...getRootProps()}
-        className={`flex items-center justify-center p-10 border-2 border-dashed rounded cursor-pointer transition
-                ${isDragActive ? "border-blue-500 bg-blue-50" : "border-gray-400"}`}
-      >
-        <input {...getInputProps()} />
+                        {htmlString && (
+                            <button
+                                onClick={handleCopy}
+                                className="px-3 py-1 bg-black text-white rounded text-sm">
+                                {copied ? 'Скопировано!' : 'Копировать'}
+                            </button>
+                        )}
+                    </div>
+                </div>
 
-        {loading ? (
-          <p>Загрузка...</p>
-        ) : isDragActive ? (
-          <p>Отпустите файл здесь...</p>
-        ) : (
-          <p>Перетащите .docx файл или кликните</p>
-        )}
-      </div>
+                {error && <p className="text-red-500 mb-3">{error}</p>}
 
-      {/* RESULT */}
-      <div className="w-full h-full flex flex-col rounded bg-gray-100 p-5">
-        <div className="flex justify-between items-center mb-3">
-          <h4 className="font-bold">HTML (для копирования):</h4>
+                {!htmlString && !error && !loading && (
+                    <p className="text-gray-500">Здесь появится HTML</p>
+                )}
 
-          {htmlString && (
-            <button
-              onClick={handleCopy}
-              className="px-3 py-1 bg-black text-white rounded text-sm"
-            >
-              {copied ? "Скопировано!" : "Копировать"}
-            </button>
-          )}
-        </div>
-
-        {error && <p className="text-red-500 mb-3">{error}</p>}
-
-        {!htmlString && !error && !loading && (
-          <p className="text-gray-500">Здесь появится HTML</p>
-        )}
-
-        {htmlString && (
-          <textarea
-            readOnly
-            value={htmlString}
-            className="w-full h-full p-3 font-mono text-sm bg-white border rounded resize-none"
-          />
-        )}
-      </div>
-    </Container>
-  );
+                {htmlString && (
+                    <textarea
+                        readOnly
+                        value={htmlString}
+                        className="w-full h-full p-3 font-mono text-sm bg-white border rounded resize-none"
+                    />
+                )}
+            </div>
+        </Container>
+    );
 }
