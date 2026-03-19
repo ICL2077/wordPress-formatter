@@ -1,8 +1,8 @@
 from docx import Document
 def convert_doc_to_wp_tags(file):
-    from docx import Document
-
-    document = Document('input.docx')
+    '''функция переводит docx документ в word press теги
+    и возвращает строку с готовым расписанием'''
+    document = Document(file)
     table_text = []  # список с таблицей
 
     for table in document.tables:  # заполнение таблицы
@@ -10,8 +10,7 @@ def convert_doc_to_wp_tags(file):
             text = [cell.text for cell in row.cells]
             table_text.append(text)
 
-    atistation = table_text[-4:-3]
-    table_text = table_text[2:-5]  # убираю лишнее
+    table_text = table_text[2:-3]  # убираю лишнее
 
     with open('output.txt', 'wb') as output:
         output.write(bytes('', 'utf-8'))
@@ -29,9 +28,12 @@ def convert_doc_to_wp_tags(file):
 
             if lesson[:6] == 'Модуль':
                 continue
+
+            elif lesson.lower() == "итоговая аттестация":
+                output.write(bytes('<p><strong>ИТОГОВАЯ АТТЕСТАЦИЯ</p><!-- /wp:paragraph -->', 'UTF-8'))
+                
             elif time == lesson:
                 date = table_text[row_index][0]
-                print(date[:5])
                 output.write(date_sample_start + bytes(date, 'utf-8') + date_sample_end)
                 output.write(main_text_tegs)
 
@@ -47,4 +49,6 @@ def convert_doc_to_wp_tags(file):
                     output.write(bytes("<br><strong>", "utf-8"))
 
         sample.close()
-        return output
+
+    with open('output.txt', 'rb') as output:
+        return str(output.read(), 'utf-8')
