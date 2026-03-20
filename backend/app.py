@@ -1,6 +1,6 @@
 from flask import Flask
 from flask_cors import CORS
-# from flasgger import Swagger
+from flasgger import Swagger
 
 from tools.doc_to_blocks.routes import doc_to_blocks_bp
 
@@ -12,14 +12,14 @@ def create_app():
     # Разрешаем запросы с фронтенда (важно для работы с Next.js)
     CORS(app)
 
-    # app.config['SWAGGER'] = {
-    #     'title': 'WP Admin Assistant API',
-    #     'uiversion': 3,  # Используем современный интерфейс Swagger UI
-    #     'openapi': '3.0.0'
-    # }
-    # # Инициализируем Swagger
-    # swagger = Swagger(app)
 
+    app.config['SWAGGER'] = {
+        'title': 'WordPress Formatter API',
+        'uiversion': 3,
+        'openapi': '3.0.1'
+    }
+    Swagger(app) # Инициализация
+ 
     # Настройки (можно вынести в config.py)
     app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024 # Лимит 10MB на загрузку файлов
 
