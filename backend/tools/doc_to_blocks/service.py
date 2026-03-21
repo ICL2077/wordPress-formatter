@@ -9,6 +9,7 @@ def convert_doc_to_wp_tags(file):
         for row in table.rows:
             text = [cell.text for cell in row.cells]
             table_text.append(text)
+    table_text = table_text[1:]
 
     with open('output.txt', 'wb') as output:
         output.write(bytes('', 'utf-8'))
