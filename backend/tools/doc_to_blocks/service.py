@@ -15,7 +15,7 @@ def convert_doc_to_wp_tags(file):
             text = [cell.text for cell in row.cells]
             table_text.append(text)
 
-    table_text = table_text[2:-5]  # убираю лишнее
+    table_text = table_text[1:]  # убираю лишнее
 
     # Читаем sample.html как шаблон
     current_dir = Path(__file__).resolve().parent
