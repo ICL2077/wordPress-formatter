@@ -37,6 +37,9 @@ def convert_doc_to_wp_tags(file):
         if lesson[:6] == 'Модуль':
             continue
 
+        elif lesson.lower() == "итоговая аттестация":
+            output.write(bytes('<p><strong>ИТОГОВАЯ АТТЕСТАЦИЯ</p><!-- /wp:paragraph -->', 'UTF-8'))
+
         elif time == lesson:
             date = table_text[row_index][0]
             output.write(date_sample_start + date.encode("utf-8") + date_sample_end)
