@@ -111,14 +111,17 @@ export default function HomePage() {
                   isOpened && "opacity-100 translate-y-0",
                 )}
               >
-                <p>
+                <p className="select-none">
                   Вы можете скачать файл-шаблон для того чтобы увидеть как
                   примерно должен выглядеть входной файл для корректной работы
                 </p>
                 <a
                   href="/шаблон-файл.docx"
                   download={"../шаблон-файл.docx"}
-                  className="text-center w-[50%] cursor-pointer px-3 py-1 bg-black text-white rounded text-sm"
+                  className={cn(
+                    "pointer-events-none text-center w-[50%] cursor-pointer px-3 py-1 bg-black text-white rounded text-sm",
+                    isOpened && "pointer-events-auto",
+                  )}
                 >
                   Скачать шаблон
                 </a>
